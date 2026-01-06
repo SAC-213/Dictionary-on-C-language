@@ -34,6 +34,12 @@ int hash_A(char word[word_max])
 
 int hash_B(char word[word_max])
 {
+    unsigned int hash = 0;
+    for (int i = 0; word[i] != '\0'; i++)
+    {
+        hash = (hash * 31) + (unsigned char)word[i];
+    }
+    return hash % hash_base;
 }
 
 void read_document(lista dictionary[size_dic], char filename[], hash_selector s)
@@ -100,40 +106,66 @@ int read_word(lista dictionary[size_dic], hash_selector s)
 
 void search_word(char word[101], lista dictionary[size_dic], hash_selector s)
 {
-    int i = 0;
-    int j = 0;
-    posicion wposition;
-    int h;
-    if (s == 'A')
+    int encontrada = 0;
+
+    for (int h = 0; h < size_dic; h++)
     {
-        h = hash_A(word);
-    }
-    else if (s == 'B')
-    {
-        h = hash_B(word);
-    }
-    wposition = Search(&dictionary[h], word);
-    if (ValidatePosition(&dictionary[h], wposition))
-    {
-        while (wposition->e.word[i] != '\0')
+        if (!Empty(&dictionary[h]))
         {
-            printf("%c", wposition->e.word[i]);
-            i++;
+            posicion p = First(&dictionary[h]);
+            while (p != NULL)
+            {
+                if (strcmp(p->e.word, word) == 0)
+                {
+                    /* Verificar si esta definición ya fue impresa */
+                    int repetida = 0;
+
+                    for (int h2 = 0; h2 < h && !repetida; h2++)
+                    {
+                        if (!Empty(&dictionary[h2]))
+                        {
+                            posicion q = First(&dictionary[h2]);
+                            while (q != NULL)
+                            {
+                                if (strcmp(q->e.word, word) == 0 &&
+                                    strcmp(q->e.def, p->e.def) == 0)
+                                {
+                                    repetida = 1;
+                                    break;
+                                }
+                                q = Following(&dictionary[h2], q);
+                            }
+                        }
+                    }
+
+                    if (!repetida)
+                    {
+                        encontrada = 1;
+
+                        int i = 0, j = 0;
+
+                        while (p->e.word[i] != '\0')
+                            printf("%c", p->e.word[i++]);
+
+                        printf(": ");
+
+                        while (p->e.def[j] != '\0')
+                            printf("%c", p->e.def[j++]);
+
+                        printf(".\n");
+                    }
+                }
+
+                p = Following(&dictionary[h], p);
+            }
         }
-        printf(": ");
-        while (wposition->e.def[j] != '\0')
-        {
-            printf("%c", wposition->e.def[j]);
-            j++;
-        }
-        printf(".\n");
     }
-    else
+
+    if (!encontrada)
     {
         printf("La palabra %s ", word);
         printf("no existe en el diccionario");
     }
-    return;
 }
 
 void def_change(char word[101], lista dictionary[size_dic], hash_selector s)

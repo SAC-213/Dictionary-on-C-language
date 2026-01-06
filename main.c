@@ -10,6 +10,42 @@
 void limpiar_pantalla();
 void limpiar_buffer();
 void menu_principal();
+void debug_export_diccionario(lista dictionary[size_dic]);
+
+void debug_export_diccionario(lista dictionary[size_dic])
+{
+    FILE *archivo = fopen("DEBUG_diccionario.txt", "w");
+    if (archivo == NULL)
+    {
+        printf("[DEBUG] Error al crear DEBUG_diccionario.txt\n");
+        return;
+    }
+
+    fprintf(archivo, "DEBUG - VOLCADO COMPLETO DEL DICCIONARIO\n");
+    fprintf(archivo, "=======================================\n\n");
+
+    for (int i = 0; i < size_dic; i++)
+    {
+        if (!Empty(&dictionary[i]))
+        {
+            fprintf(archivo, "Hash [%d]\n", i);
+            fprintf(archivo, "-----------------\n");
+
+            posicion p = First(&dictionary[i]);
+            while (p != NULL)
+            {
+                fprintf(archivo, "Palabra: %s\n", p->e.word);
+                fprintf(archivo, "Definicion: %s\n\n", p->e.def);
+                p = Following(&dictionary[i], p);
+            }
+
+            fprintf(archivo, "\n");
+        }
+    }
+
+    fclose(archivo);
+    printf("[DEBUG] Diccionario exportado a DEBUG_diccionario.txt\n");
+}
 
 void limpiar_buffer()
 {
@@ -199,6 +235,11 @@ int main(int argc, char const *argv[])
         case 6:
             printf("\nEstadísticas del diccionario\n");
             hash_statics(dictionary);
+            getchar();
+            break;
+
+        case 99:
+            debug_export_diccionario(dictionary);
             getchar();
             break;
 
